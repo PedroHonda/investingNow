@@ -1,9 +1,10 @@
+import os
 import pandas as pd
 import numpy as np
 
 class pdInvestingManager:
     def __init__(self):
-        pass
+        self.cwd = os.getcwd()
 
     def createInvestingPD(self):
         # Values 
@@ -14,19 +15,19 @@ class pdInvestingManager:
             self.df[h] = pd.Series([], dtype=header_type[idx])
 
 ####################### considering to remove all of these...
-    def saveInvestingPD_PKL(self, file_name):
-        if self.df:
-            self.df.to_pickle(file_name)  # save as .pkl
+    def saveOperations_PKL(self):
+        if not self.df.empty:
+            self.df.to_pickle(os.path.join(self.cwd, "pdRawData", "operations.pkl"))  # save as .pkl
     
-    def loadInvestingPD_PKL(self, file_name):
-        self.df = pd.read_pickle(file_name)
+    def loadOperations_PKL(self):
+        self.df = pd.read_pickle(os.path.join(self.cwd, "pdRawData", "operations.pkl"))
 
-    def saveInvestingPD_CSV(self, file_name):
-        if self.df:
-            self.df.to_csv(file_name, index=False, sep=';')  # save as .csv
+    def saveOperations_CSV(self):
+        if not self.df.empty:
+            self.df.to_csv(os.path.join(self.cwd, "pdRawData", "operations.csv"), index=False, sep=';')  # save as .csv
 
-    def loadInvestingPD_CSV(self, file_name):
-        self.df = pd.read_csv(file_name, sep=';')
+    def loadOperations_CSV(self):
+        self.df = pd.read_csv(os.path.join(self.cwd, "pdRawData", "operations.csv"), sep=';')
         self.df["Data"] = pd.to_datetime(self.df["Data"], errors='coerce')
         self.df["Data"] = self.df["Data"].dt.date
         self.df["Quantidade"] = pd.to_numeric(self.df["Quantidade"], errors='coerce')
@@ -73,3 +74,13 @@ class pdInvestingManager:
         if self.df:
             pass
         return profit
+
+    def createSummary(self):
+        """
+        docstring
+        """
+        self.pt = pd.pivot_table(self.df, index=["Ticker"], values=["Quantidade"], aggfunc=np.sum)
+        self.pt = self.pt[(self.pt.T != 0).any()]
+        currPM = pd.pivot_table(self.df, index=["Ticker"], values=["PM atual"], aggfunc="last")
+        currPM = currPM[(currPM.T != 0).any()]
+        self.pt["PM atual"] = currPM["PM atual"]
