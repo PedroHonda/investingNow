@@ -1,10 +1,13 @@
 import os
 import pandas as pd
 import numpy as np
+import datetime
+from pandas_datareader import data as web
 
 class pdInvestingManager:
     def __init__(self):
         self.cwd = os.getcwd()
+        self.now = datetime.datetime.now()
 
     def createInvestingPD(self):
         # Values 
@@ -68,13 +71,6 @@ class pdInvestingManager:
                     currMeanValue = 0.0
         return currMeanValue
 
-    # TODO
-    def getProfit(self):
-        profit = 0.0
-        if self.df:
-            pass
-        return profit
-
     def createSummary(self):
         """
         docstring
@@ -84,3 +80,15 @@ class pdInvestingManager:
         currPM = pd.pivot_table(self.df, index=["Ticker"], values=["PM atual"], aggfunc="last")
         currPM = currPM[(currPM.T != 0).any()]
         self.pt["PM atual"] = currPM["PM atual"]
+        
+        delta_5 = datetime.timedelta(5) # delta of 5 days
+        start = (self.now-delta_5).strftime("%m-%d-%Y")
+        tickers = [s + ".SA" for s in self.pt.index.tolist()]
+        df = web.DataReader(tickers, data_source='yahoo', start=start)
+        self.pt["Last Price"] = df["Close"].iloc[-1].tolist()
+        self.pt["Current Position"] = self.pt["Last Price"]*self.pt["Quantidade"]
+        self.pt["Delta"] = (self.pt["Last Price"]-self.pt["PM atual"])*self.pt["Quantidade"]
+
+    def snapshotSummary(self):
+        if not self.pt.empty:
+            self.pt.to_csv(os.path.join(self.cwd, "pdRawData", self.now.strftime("%Y-%m-%d")+"_Summary_Snapshot.csv"), sep=';')
