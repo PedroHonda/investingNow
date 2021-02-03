@@ -92,3 +92,8 @@ class pdInvestingManager:
     def snapshotSummary(self):
         if not self.pt.empty:
             self.pt.to_csv(os.path.join(self.cwd, "pdRawData", self.now.strftime("%Y-%m-%d")+"_Summary_Snapshot.csv"), sep=';')
+
+    def getStockByTicker_HTML(self, ticker):
+        flt = self.df["Ticker"].isin([ticker])
+        stock = self.df[flt]
+        return stock.to_html()
