@@ -22,6 +22,8 @@ table {
 	margin: 30px auto;
 	text-align: left;
 	width: 800px;
+	*border-collapse: collapse; /* IE7 and lower */
+    border-spacing: 0;
 }	
 
 th {
@@ -53,10 +55,16 @@ th:after {
 th:first-child {
 	border-left: 1px solid #777;	
 	box-shadow: inset 1px 1px 0 #999;
+	border-radius: 6px 0 0 0;
 }
 
 th:last-child {
 	box-shadow: inset -1px 1px 0 #999;
+	border-radius: 0 6px 0 0;
+}
+
+th:only-child{
+    border-radius: 6px 6px 0 0;
 }
 
 td {
