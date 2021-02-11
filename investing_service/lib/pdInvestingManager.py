@@ -41,8 +41,8 @@ class pdInvestingManager:
         self.df["Profit"] = pd.to_numeric(self.df["Profit"], errors='coerce')
 ####################### considering to remove all of these...
 
-    def add_info(self, broker="", data="", ticker="", value=0.0, quantity = 0, taxes=0.0, irrf=0.0, comments=""):
-        new_row = {"Broker": broker, "Date": data, "Ticker": ticker, "Quantity": quantity, "Value": value, "Taxes": taxes, "IRRF": irrf, "Comments": comments}
+    def add_info(self, broker="", date="", ticker="", value=0.0, quantity = 0, taxes=0.0, irrf=0.0, comments="", stock_class=""):
+        new_row = {"Broker": broker, "Date": date, "Ticker": ticker, "Quantity": quantity, "Value": value, "Taxes": taxes, "IRRF": irrf, "Comments": comments, "Class": stock_class}
         new_row["Total Value"] = quantity*value
         new_row["Avg Value"] = 0.0   # to be updated after updating data frame
         new_row["Profit"] = 0.0
