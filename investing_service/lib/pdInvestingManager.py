@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import datetime
+import re
 from pandas_datareader import data as web
 
 class pdInvestingManager:
@@ -16,7 +17,6 @@ class pdInvestingManager:
         for idx,h in enumerate(header):
             self.df[h] = pd.Series([], dtype=header_type[idx])
 
-####################### considering to remove all of these...
     def saveOperations_PKL(self):
         if not self.df.empty:
             self.df.to_pickle(os.path.join(self.cwd, "pdRawData", "operations.pkl"))  # save as .pkl
@@ -30,7 +30,7 @@ class pdInvestingManager:
 
     def loadOperations_CSV(self):
         self.df = pd.read_csv(os.path.join(self.cwd, "pdRawData", "operations.csv"), sep=';')
-        self.df["Date"] = pd.to_datetime(self.df["Date"], errors='coerce')
+        self.df["Date"] = pd.to_datetime(self.df["Date"], errors='coerce', format="%Y-%m-%d")
         self.df["Date"] = self.df["Date"].dt.date
         self.df["Quantity"] = pd.to_numeric(self.df["Quantity"], errors='coerce')
         self.df["Value"] = pd.to_numeric(self.df["Value"], errors='coerce')
@@ -39,7 +39,6 @@ class pdInvestingManager:
         self.df["IRRF"] = pd.to_numeric(self.df["IRRF"], errors='coerce')
         self.df["Avg Value"] = pd.to_numeric(self.df["Avg Value"], errors='coerce')
         self.df["Profit"] = pd.to_numeric(self.df["Profit"], errors='coerce')
-####################### considering to remove all of these...
 
     def add_info(self, broker="", date="", ticker="", value=0.0, quantity = 0, taxes=0.0, irrf=0.0, comments="", stock_class=""):
         new_row = {"Broker": broker, "Date": date, "Ticker": ticker, "Quantity": quantity, "Value": value, "Taxes": taxes, "IRRF": irrf, "Comments": comments, "Class": stock_class}
@@ -72,26 +71,33 @@ class pdInvestingManager:
         return currAvgValue
 
     def createSummary(self):
-        """
-        docstring
-        """
-        self.pt = pd.pivot_table(self.df, index=["Ticker"], values=["Quantity"], aggfunc=np.sum)
-        self.pt = self.pt[(self.pt.T != 0).any()]
-        currAV = pd.pivot_table(self.df, index=["Ticker"], values=["Avg Value"], aggfunc="last")
-        currAV = currAV[(currAV.T != 0).any()]
-        self.pt["Avg Value"] = currAV["Avg Value"]
-        
-        delta_5 = datetime.timedelta(5) # delta of 5 days
-        start = (self.now-delta_5).strftime("%m-%d-%Y")
-        tickers = [s + ".SA" for s in self.pt.index.tolist()]
-        df = web.DataReader(tickers, data_source='yahoo', start=start)
-        self.pt["Last Price"] = df["Close"].iloc[-1].tolist()
-        self.pt["Current Position"] = self.pt["Last Price"]*self.pt["Quantity"]
-        self.pt["Delta"] = (self.pt["Last Price"]-self.pt["Avg Value"])*self.pt["Quantity"]
+        self.pt = self.createSummaryByDate(date=self.now.strftime("%Y-%m-%d"), getLastPrice=True)
 
     def snapshotSummary(self):
         if not self.pt.empty:
             self.pt.to_csv(os.path.join(self.cwd, "pdRawData", self.now.strftime("%Y-%m-%d")+"_Summary_Snapshot.csv"), sep=';')
+
+    def createSummaryByDate(self, date, getLastPrice=False):
+        summaryDF = pd.DataFrame()
+        pd_date = pd.to_datetime(date, errors='coerce', format="%Y-%m-%d")
+        if not self.df.empty and not pd.isnull(pd_date):
+            flt = self.df["Date"] < pd_date
+            summaryDF = pd.pivot_table(self.df[flt], index=["Ticker"], values=["Quantity"], aggfunc=np.sum)
+            summaryDF = summaryDF[(summaryDF.T != 0).any()]
+            currAV = pd.pivot_table(self.df[flt], index=["Ticker"], values=["Avg Value"], aggfunc="last")
+            currAV = currAV[(currAV.T != 0).any()]
+            summaryDF["Avg Value"] = currAV["Avg Value"]
+            
+            if getLastPrice:
+                delta_5 = datetime.timedelta(5) # delta of 5 days
+                start = (datetime.datetime.strptime(date, '%Y-%m-%d')-delta_5).strftime("%m-%d-%Y")
+                end = (datetime.datetime.strptime(date, '%Y-%m-%d')).strftime("%m-%d-%Y")
+                tickers = [s + ".SA" for s in summaryDF.index.tolist()]
+                df = web.DataReader(tickers, data_source='yahoo', start=start, end=end)
+                summaryDF["Last Price"] = df["Close"].iloc[-1].tolist()
+                summaryDF["Current Position"] = summaryDF["Last Price"]*summaryDF["Quantity"]
+                summaryDF["Delta"] = (summaryDF["Last Price"]-summaryDF["Avg Value"])*summaryDF["Quantity"]
+        return summaryDF
 
     def getStockByTicker_HTML(self, ticker):
         flt = self.df["Ticker"].isin([ticker])

@@ -8,11 +8,16 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-insert', help='Use this option to manually insert a operation', action='store_true')
     parser.add_argument('-snap', help='Use this option to create a snapshot', action='store_true')
+    parser.add_argument('-syncCSV', help='Use this option to sync current CSV to Pickle', action='store_true')
     args = parser.parse_args()
 
     im = PDIM()
-    im.loadOperations_PKL()
-
+    
+    if args.syncCSV:
+        im.loadOperations_CSV()
+        im.saveOperations_PKL()
+    else:
+        im.loadOperations_PKL()
     if args.insert:
         broker = input("Broker : ")
         date = input("Date [YYYY-MM-DD] : ")
