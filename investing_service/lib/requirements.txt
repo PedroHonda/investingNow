@@ -1,2 +1,5 @@
 pandas
 pandas_datareader
+flask
+flask_restful
+flask_cors
