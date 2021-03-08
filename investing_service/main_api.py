@@ -13,7 +13,7 @@ class Home(Resource):
     def get(self):
         im = PDIM()
         im.loadOperations_PKL()
-        im_to_json = im.df.to_json(orient="split", index=False, date_format="iso")
+        im_to_json = im.df.to_json(orient="split", index=False, date_format="iso").replace("T00:00:00.000Z","")
         return json.loads(im_to_json), 200
 
     def post(self):
@@ -80,7 +80,7 @@ class Stock(Resource):
         tickerDF = im.df[flt]
         if tickerDF.empty:
             return "Not Found", 404
-        tickerDF_to_json = tickerDF.to_json(orient="split", index=False, date_format="iso")
+        tickerDF_to_json = tickerDF.to_json(orient="split", index=False, date_format="iso").replace("T00:00:00.000Z","")
         return json.loads(tickerDF_to_json), 200
 
 
@@ -92,12 +92,23 @@ class Summary(Resource):
         summaryDF = im.pt
         if summaryDF.empty:
             return "Not Found", 404
-        summaryDF_to_json = summaryDF.to_json(orient="split", index=True, date_format="iso")
+        summaryDF_to_json = summaryDF.to_json(orient="split", index=True, date_format="iso").replace("T00:00:00.000Z","")
         return json.loads(summaryDF_to_json), 200
+
+class Current(Resource):
+    def get(self):
+        im = PDIM()
+        im.loadOperations_PKL()
+        currentDF = im.createSummaryByDate()
+        if currentDF.empty:
+            return "Not Found", 404
+        currentDF_to_json = currentDF.to_json(orient="split", index=True, date_format="iso").replace("T00:00:00.000Z","")
+        return json.loads(currentDF_to_json), 200
 
 api.add_resource(Home, '/')
 api.add_resource(Stock, '/<string:ticker>')
 api.add_resource(Summary, '/summary')
+api.add_resource(Current, '/current')
 
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=8080, debug=True)

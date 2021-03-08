@@ -1,0 +1,97 @@
+{% extends "investing/base.html" %}
+{% block content %}
+		<!-- Highlights -->
+			<section id="main" class="wrapper">
+				<div class="inner">
+					<div class="table-wrapper">
+						<table>
+							<thead>
+								<tr>
+									{% for column in columns %}
+									<th>{{ column }}</th>
+									{% endfor %}
+								</tr>
+							</thead>
+							<tbody>
+								{% for row in rows %}
+								<tr>
+									{% for item in row %}
+									<td>{{ item }}</td>
+									{% endfor %}
+								</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</section>
+
+			<!-- CTA -->
+			<section id="cta" class="wrapper">
+				<div class="inner">
+					<h2>Operations</h2>
+						<form method="post" action="#">
+							<div class="row gtr-uniform">
+								<div class="col-3 col-12-xsmall">
+									<input type="text" name="date" id="date" value="" placeholder="Date: YYYY-MM-DD" />
+								</div>
+								<div class="col-3 col-12-xsmall">
+									<input type="text" name="stock" id="stock" value="" placeholder="Stock" />
+								</div>
+								<div class="col-2 col-12-xsmall">
+									<input type="text" name="quantity" id="quantity" value="" placeholder="Quantity" />
+								</div>
+								<div class="col-2 col-12-xsmall">
+									<input type="text" name="value" id="value" value="" placeholder="Value" />
+								</div>
+								<div class="col-2 col-12-xsmall">
+									<input type="text" name="taxes" id="taxes" value="" placeholder="Taxes" />
+								</div>
+								<!-- Break -->
+								<div class="col-6 col-12-xsmall">
+									<select name="category" id="category">
+										<option value="">Broker</option>
+										<option>Option alpha</option>
+										{% if brokers %}
+											{% for b in brokers %}
+											<option>{{ b }}</option>
+											{% endfor %}
+										{% endif %}
+									</select>
+								</div>
+								<div class="col-6 col-12-xsmall">
+									<select name="category" id="category">
+										<option value="">Classes</option>
+										<option>Option alpha</option>
+										{% if classes %}
+											{% for c in classes %}
+											<option>{{ c }}</option>
+											{% endfor %}
+										{% endif %}
+									</select>
+								</div>
+								<!-- Break -->
+								<div class="col-6 col-12-small">
+									<input type="radio" id="radio-alpha" name="radio" checked>
+									<label for="radio-alpha">Buying</label>
+								</div>
+								<div class="col-6 col-12-small">
+									<input type="radio" id="radio-beta" name="radio">
+									<label for="radio-beta">Selling</label>
+								</div>
+								<!-- Break -->
+								<div class="col-12">
+									<textarea name="textarea" id="textarea" placeholder="Comments..." rows="6"></textarea>
+								</div>
+								<!-- Break -->
+								<div class="col-12">
+									<ul class="actions">
+										<li><input type="submit" value="Submit Form" class="primary" /></li>
+										<li><input type="reset" value="Reset" /></li>
+									</ul>
+								</div>
+							</div>
+						</form>
+				</div>
+			</section>
+{% endblock content %}

@@ -77,7 +77,9 @@ class pdInvestingManager:
         if not self.pt.empty:
             self.pt.to_csv(os.path.join(self.cwd, "pdRawData", self.now.strftime("%Y-%m-%d")+"_Summary_Snapshot.csv"), sep=';')
 
-    def createSummaryByDate(self, date, getLastPrice=False):
+    def createSummaryByDate(self, date="", getLastPrice=False):
+        if not date:
+            date = self.now.strftime("%Y-%m-%d")
         summaryDF = pd.DataFrame()
         pd_date = pd.to_datetime(date, errors='coerce', format="%Y-%m-%d")
         if not self.df.empty and not pd.isnull(pd_date):

@@ -1,0 +1,28 @@
+{% extends "investing/base.html" %}
+{% block content %}
+		<!-- Highlights -->
+			<section id="main" class="wrapper">
+				<div class="inner">
+					<div class="table-wrapper">
+						<table>
+							<thead>
+								<tr>
+									{% for column in columns %}
+									<th>{{ column }}</th>
+									{% endfor %}
+								</tr>
+							</thead>
+							<tbody>
+								{% for row in rows %}
+								<tr>
+									{% for item in row %}
+									<td>{{ item }}</td>
+									{% endfor %}
+								</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</section>
+{% endblock content %}
