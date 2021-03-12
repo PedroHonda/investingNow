@@ -105,10 +105,21 @@ class Stock_Current(Resource):
         currentDF_to_json = currentDF.to_json(orient="split", index=True, date_format="iso").replace("T00:00:00.000Z","")
         return json.loads(currentDF_to_json), 200
 
+class Stock_Info(Resource):
+    def get(self):
+        im = PDIM()
+        im.loadOperations_PKL()
+        brokers = im.df["Broker"].unique().tolist()
+        classes = im.df["Class"].dropna().unique().tolist()
+        if not brokers and not classes:
+            return "Not Found", 404
+        return {"brokers":brokers, "classes":classes}, 200   
+
 api.add_resource(Stock_Home, '/stock/')
 api.add_resource(Stock_Ticker, '/stock/<string:ticker>')
 api.add_resource(Stock_Summary, '/stock/summary')
 api.add_resource(Stock_Current, '/stock/current')
+api.add_resource(Stock_Info, '/stock/info')
 
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=8080, debug=True)

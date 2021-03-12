@@ -3,14 +3,16 @@ from django.shortcuts import render
 
 # Create your views here.
 def mainPage_view(request, *args, **kwargs):
-    return render(request, "investing/index.html", {})
+    r_info = requests.get("http://127.0.0.1:8080/stock/info")
+    return render(request, "investing/index.html", {'brokers': r_info.json()["brokers"], "classes": r_info.json()["classes"]})
 
 def settings_view(request, *args, **kwargs):
     return render(request, "investing/settings.html", {})
 
 def stock_view(request, *args, **kwargs):
     r = requests.get("http://127.0.0.1:8080/stock")
-    return render(request, "investing/stock_main.html", {'heading': 'Stock', 'columns': r.json()["columns"], 'rows': r.json()["data"]})
+    r_info = requests.get("http://127.0.0.1:8080/stock/info")
+    return render(request, "investing/stock_main.html", {'heading': 'Stock', 'columns': r.json()["columns"], 'rows': r.json()["data"], 'brokers': r_info.json()["brokers"], "classes": r_info.json()["classes"]})
 
 def stock_by_ticker_view(request, ticker, *args, **kwargs):
     r = requests.get("http://127.0.0.1:8080/stock/"+ticker)
