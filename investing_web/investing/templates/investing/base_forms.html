@@ -4,7 +4,7 @@
 			<section id="cta" class="wrapper">
 				<div class="inner">
 					<h2>Buying / Selling Stocks</h2>
-						<form method="post" action="#">
+						<form method="post" action="http://127.0.0.1:8080/stock/">
 							<div class="row gtr-uniform">
 								<div class="col-3 col-12-xsmall">
 									<input type="text" name="date" id="date" value="" placeholder="Date: YYYY-MM-DD" />
@@ -23,7 +23,7 @@
 								</div>
 								<!-- Break -->
 								<div class="col-6 col-12-xsmall">
-									<select name="category" id="category">
+									<select name="broker" id="broker">
 										<option value="">Broker</option>
 										{% if brokers %}
 											{% for b in brokers %}
@@ -33,7 +33,7 @@
 									</select>
 								</div>
 								<div class="col-6 col-12-xsmall">
-									<select name="category" id="category">
+									<select name="classes" id="classes">
 										<option value="">Classes</option>
 										{% if classes %}
 											{% for c in classes %}
@@ -53,12 +53,12 @@
 								</div>
 								<!-- Break -->
 								<div class="col-12">
-									<textarea name="textarea" id="textarea" placeholder="Comments..." rows="6"></textarea>
+									<textarea name="textarea" id="comments" placeholder="Comments..." rows="6"></textarea>
 								</div>
 								<!-- Break -->
 								<div class="col-12">
 									<ul class="actions">
-										<li><input type="submit" value="Post" class="primary" /></li>
+										<li><input type="submit" value="Post" class="primary" onclick=postValues()/></li>
 										<li><input type="reset" value="Reset" /></li>
 									</ul>
 								</div>
