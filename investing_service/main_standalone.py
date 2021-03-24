@@ -1,8 +1,13 @@
 import json
-from flask import Flask
+from flask import Flask, request, g
+from flask_restful import Resource, Api, reqparse
+from flask_cors import CORS
 from flask import render_template
 from lib.pdInvestingManager import pdInvestingManager as PDIM
+
 app = Flask(__name__)
+api = Api(app)
+CORS(app)
 
 @app.route('/')
 def index():
@@ -79,6 +84,63 @@ def view_stock_current_detail():
     r = json.loads(summaryDF_to_json)
     z = zip(r["index"], r["data"])
     return render_template("simple_table_with_index.html", heading="Summary - Details", columns=r["columns"], rows=r["data"], z=z)
+
+
+class Stock_Home(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('broker', type=str, required=True, help='Broker must be a String')
+        parser.add_argument('date', type=str, required=True, help='Date must be a String [YYYY-MM-DD]')
+        parser.add_argument('ticker', type=str, required=True, help='Ticker must be a String')
+        parser.add_argument('value', type=float, required=True, help='Value must be a Float')
+        parser.add_argument('quantity', type=int, required=True, help='Quantity must be an Integer')
+        parser.add_argument('taxes', type=float, help='Taxes must be a Float')
+        parser.add_argument('stock_class', type=str, help='Stock Class must be a String')
+        parser.add_argument('comments', type=str, help='Comments must be a String')
+        try:
+            args = parser.parse_args()      
+        except:
+            pass
+            return {"Bad Input! Follow the example..." : {
+                    "broker" : "Easynvest",
+                    "date" : "2018-09-20",
+                    "ticker" : "HGLG11",
+                    "value" : 171.12,
+                    "quantity" : 21,
+                    "taxes" : 0.55,
+                    "stock_class" : "FII",
+                    "comments" : ""
+                }}, 400
+        if args['quantity'] > 0:
+            args['irrf'] = 0.0
+        else:
+            args['irrf'] = -float(args['quantity'])*float(args['value'])*0.00005
+        if not args['taxes']:
+            args['taxes'] = 0.0
+        if not args['stock_class']:
+            args['stock_class'] = ''
+        if not args['comments']:
+            args['comments'] = ''
+        im = PDIM()
+        try:
+            im.loadOperations_PKL()
+        except:
+            im.createInvestingPD()
+        summaryDF = im.createSummaryByDate(im.now.strftime("%Y-%m-%d"))
+        flt = summaryDF.isin([args['ticker']])
+        if summaryDF[flt].empty and args["quantity"] < 0:
+            return {'Conflict' : 'Request to sell a stock not previously owned'}, 409
+
+        im.add_info(broker=args["broker"], date=args["date"], ticker=args["ticker"], 
+                    value=args["value"], quantity=args["quantity"], taxes=args["taxes"], 
+                    irrf=args["irrf"], comments=args["comments"], stock_class=args["stock_class"])
+
+        im.saveOperations_PKL()
+        im.saveOperations_CSV()
+
+        return {'Success!' : args['ticker']}, 200
+
+api.add_resource(Stock_Home, '/stock/')
 
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=8000, debug=True)

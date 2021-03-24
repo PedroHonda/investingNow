@@ -34,22 +34,23 @@ function postValues() {
     }
     var json = {};
     json["date"] = inputDateVar;
-    json["stock"] = inputStock;
+    json["ticker"] = inputStock;
     json["quantity"] = Number(inputQuantity);
     json["value"] = Number(inputValue);
     json["taxes"] = Number(inputTaxes);
-    json["broker"] = "Clear";
-    json["stock_class"] = "";
-    json["comments"] = "";
+    json["broker"] = inputBroker;
+    if (inputClass == "Classes")
+        json["stock_class"] = "";
+    else
+        json["stock_class"] = inputClass;
+    json["comments"] = inputComments;
     $.ajax({
-        url: 'http://127.0.0.1:8080/stock/',
+        url: 'http://127.0.0.1:8000/stock/',
         type: 'POST',
-        contentType: 'application/json; charset=utf-8',
-        data: $.toJSON(json),
-        dataType: 'text',
-        success: function(result) {
-            alert(result.Result);
-        }
+        contentType: 'application/json',
+        data: JSON.stringify(json),
+        dataType: 'json',
+        success: alert("SUCCESS!")
     });
     //httpPOST("http://127.0.0.1:8080/stock", callbackPOST, json);
 }

@@ -41,10 +41,11 @@ class pdInvestingManager:
         self.df["Profit"] = pd.to_numeric(self.df["Profit"], errors='coerce')
 
     def add_info(self, broker="", date="", ticker="", value=0.0, quantity = 0, taxes=0.0, irrf=0.0, comments="", stock_class=""):
-        new_row = {"Broker": broker, "Date": date, "Ticker": ticker, "Quantity": quantity, "Value": value, "Taxes": taxes, "IRRF": irrf, "Comments": comments, "Class": stock_class}
+        new_row = {"Broker": broker, "Ticker": ticker, "Quantity": quantity, "Value": value, "Taxes": taxes, "IRRF": irrf, "Comments": comments, "Class": stock_class}
+        new_row["Date"] = pd.to_datetime(date, errors='coerce', format="%Y-%m-%d").date()
         new_row["Total Value"] = quantity*value
         new_row["Avg Value"] = 0.0   # to be updated after updating data frame
-        new_row["Profit"] = 0.0
+        new_row["Profit"] = np.NaN
         if quantity < 0.0:
             currAvgValue = self.getCurrentAvgValueOfTicker(ticker)
             profit = (currAvgValue*quantity)-(value*quantity)+taxes+irrf   # quantity is negative
@@ -89,6 +90,7 @@ class pdInvestingManager:
             currAV = pd.pivot_table(self.df[flt], index=["Ticker"], values=["Avg Value"], aggfunc="last")
             currAV = currAV[(currAV.T != 0).any()]
             summaryDF["Avg Value"] = currAV["Avg Value"]
+            summaryDF["Total"] = summaryDF["Avg Value"]*summaryDF["Quantity"]
             
             if getLastPrice:
                 delta_5 = datetime.timedelta(5) # delta of 5 days
