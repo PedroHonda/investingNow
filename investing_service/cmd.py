@@ -2,7 +2,7 @@
 import os
 import sys
 import argparse
-from lib.pdInvestingManager import pdInvestingManager as PDIM
+from lib.brstockmanager import BrStockManager as PDIM
 
 def main():
     parser = argparse.ArgumentParser()
@@ -14,10 +14,10 @@ def main():
     im = PDIM()
     
     if args.syncCSV:
-        im.loadOperations_CSV()
-        im.saveOperations_PKL()
+        im.load_brstock_operations_csv()
+        im.save_brstock_operations_pkl()
     else:
-        im.loadOperations_PKL()
+        im.load_brstock_operations_pkl()
     if args.insert:
         broker = input("Broker : ")
         date = input("Date [YYYY-MM-DD] : ")
@@ -32,11 +32,11 @@ def main():
         stock_class = input("Class : ")
         comments = input("Comments : ")
         im.add_info(broker=broker, date=date, ticker=ticker, value=value, quantity = quantity, taxes=taxes, irrf=irrf, comments=comments, stock_class=stock_class)
-        im.saveOperations_PKL()
-        im.saveOperations_CSV()
+        im.save_brstock_operations_pkl()
+        im.save_brstock_operations_csv()
     if args.snap:
-        im.createSummary()
-        im.snapshotSummary()
+        im.create_summary()
+        im.snapshot_summary()
 
 if __name__ == "__main__":
     main()

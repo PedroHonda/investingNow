@@ -3,7 +3,7 @@ import json
 from flask import Flask, request, g
 from flask_restful import Resource, Api, reqparse
 from flask_cors import CORS
-from lib.pdInvestingManager import pdInvestingManager as PDIM
+from lib.brstockmanager import BrStockManager as PDIM
 
 app = Flask(__name__)
 api = Api(app)
@@ -12,8 +12,8 @@ CORS(app)
 class Stock_Home(Resource):
     def get(self):
         im = PDIM()
-        im.loadOperations_PKL()
-        im_to_json = im.df.to_json(orient="split", index=False, date_format="iso").replace("T00:00:00.000Z","")
+        im.load_brstock_operations_pkl()
+        im_to_json = im.dfop.to_json(orient="split", index=False, date_format="iso").replace("T00:00:00.000Z","")
         return json.loads(im_to_json), 200
 
     def post(self):
@@ -53,11 +53,11 @@ class Stock_Home(Resource):
 
         im = PDIM()
         try:
-            im.loadOperations_PKL()
+            im.load_brstock_operations_pkl()
         except:
-            im.createInvestingPD()
+            im.create_brstock_dataframe()
 
-        summaryDF = im.createSummaryByDate(im.now.strftime("%Y-%m-%d"))
+        summaryDF = im.create_summary_by_date(im.now.strftime("%Y-%m-%d"))
         flt = summaryDF.isin([args['ticker']])
 
         if summaryDF[flt].empty and args["quantity"] < 0:
@@ -67,17 +67,17 @@ class Stock_Home(Resource):
                     value=args["value"], quantity=args["quantity"], taxes=args["taxes"], 
                     irrf=args["irrf"], comments=args["comments"], stock_class=args["stock_class"])
 
-        im.saveOperations_PKL()
-        im.saveOperations_CSV()
+        im.save_brstock_operations_pkl()
+        im.save_brstock_operations_csv()
 
         return {'Success!' : args['ticker']}, 200
 
 class Stock_Ticker(Resource):
     def get(self, ticker):
         im = PDIM()
-        im.loadOperations_PKL()
-        flt = im.df["Ticker"].isin([ticker])
-        tickerDF = im.df[flt]
+        im.load_brstock_operations_pkl()
+        flt = im.dfop["Ticker"].isin([ticker])
+        tickerDF = im.dfop[flt]
         if tickerDF.empty:
             return "Not Found", 404
         tickerDF_to_json = tickerDF.to_json(orient="split", index=False, date_format="iso").replace("T00:00:00.000Z","")
@@ -87,9 +87,9 @@ class Stock_Ticker(Resource):
 class Stock_Summary(Resource):
     def get(self):
         im = PDIM()
-        im.loadOperations_PKL()
-        im.createSummary()
-        summaryDF = im.pt
+        im.load_brstock_operations_pkl()
+        im.create_summary()
+        summaryDF = im.summary_table
         if summaryDF.empty:
             return "Not Found", 404
         summaryDF_to_json = summaryDF.to_json(orient="split", index=True, date_format="iso").replace("T00:00:00.000Z","")
@@ -98,8 +98,8 @@ class Stock_Summary(Resource):
 class Stock_Current(Resource):
     def get(self):
         im = PDIM()
-        im.loadOperations_PKL()
-        currentDF = im.createSummaryByDate()
+        im.load_brstock_operations_pkl()
+        currentDF = im.create_summary_by_date()
         if currentDF.empty:
             return "Not Found", 404
         currentDF_to_json = currentDF.to_json(orient="split", index=True, date_format="iso").replace("T00:00:00.000Z","")
@@ -108,9 +108,9 @@ class Stock_Current(Resource):
 class Stock_Info(Resource):
     def get(self):
         im = PDIM()
-        im.loadOperations_PKL()
-        brokers = im.df["Broker"].unique().tolist()
-        classes = im.df["Class"].dropna().unique().tolist()
+        im.load_brstock_operations_pkl()
+        brokers = im.dfop["Broker"].unique().tolist()
+        classes = im.dfop["Class"].dropna().unique().tolist()
         if not brokers and not classes:
             return "Not Found", 404
         return {"brokers":brokers, "classes":classes}, 200   
