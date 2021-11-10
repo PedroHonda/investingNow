@@ -5,10 +5,13 @@ Class BrStockManager:
 - Analyze information
 '''
 import datetime
+import logging
 import os
 import pandas as pd
 import numpy as np
 from pandas_datareader import data as web
+
+logger = logging.getLogger(__name__)
 
 class BrStockManager:
     '''
@@ -19,11 +22,13 @@ class BrStockManager:
         self.now = datetime.datetime.now()
         self.dfop = pd.DataFrame()
         self.summary_table = pd.DataFrame()
+        logger.info("BrStockManager class created")
 
     def create_brstock_dataframe(self):
         '''
         Create operations dataframe from scratch
         '''
+        logger.info("BrStockManager - create_brstock_dataframe")
         headers = ["Broker", "Date", "Ticker", "Quantity",
             "Value", "Total Value", "Taxes", "IRRF",
             "Avg Value", "Profit", "Comments"]
@@ -36,6 +41,7 @@ class BrStockManager:
         '''
         Save operations dataframe in pickle format
         '''
+        logger.info("BrStockManager - save_brstock_operations_pkl")
         if not self.dfop.empty:
             # save as .pkl
             self.dfop.to_pickle(os.path.join(self.cwd, "pd_raw_data", "operations.pkl"))
@@ -44,12 +50,14 @@ class BrStockManager:
         '''
         Load operations dataframe from pickle file
         '''
+        logger.info("BrStockManager - load_brstock_operations_pkl")
         self.dfop = pd.read_pickle(os.path.join(self.cwd, "pd_raw_data", "operations.pkl"))
 
     def save_brstock_operations_csv(self):
         '''
         Save operations dataframe in csv format
         '''
+        logger.info("BrStockManager - save_brstock_operations_csv")
         if not self.dfop.empty:
             # save as .csv
             self.dfop.to_csv(os.path.join(self.cwd,
@@ -59,6 +67,7 @@ class BrStockManager:
         '''
         Load operations dataframe from csv file
         '''
+        logger.info("BrStockManager - load_brstock_operations_csv")
         self.dfop = pd.read_csv(os.path.join(self.cwd, "pd_raw_data", "operations.csv"), sep=';')
         self.dfop["Date"] = pd.to_datetime(self.dfop["Date"], errors='coerce', format="%Y-%m-%d")
         self.dfop["Date"] = self.dfop["Date"].dt.date
@@ -85,6 +94,7 @@ class BrStockManager:
         - comments
         - stock_class
         '''
+        logger.info("BrStockManager - add_info - kwargs %s", kwargs)
         broker = kwargs["broker"]
         ticker = kwargs["ticker"]
         date = kwargs["date"]
@@ -113,6 +123,7 @@ class BrStockManager:
         '''
         Given a ticker as input, calculate current Average value
         '''
+        logger.info("BrStockManager - get_current_avgvalue_of_ticker - ticker %s", ticker)
         flt = self.dfop["Ticker"].isin([ticker])
         dft = self.dfop[flt]
         quant, value, taxes = dft["Quantity"], dft["Value"], dft["Taxes"]
@@ -133,6 +144,7 @@ class BrStockManager:
         '''
         Create a summary using current date
         '''
+        logger.info("BrStockManager - create_summary")
         self.summary_table = self.create_summary_by_date(date=self.now.strftime("%Y-%m-%d"),
             get_last_price=True)
 
@@ -140,6 +152,7 @@ class BrStockManager:
         '''
         Creates a csv snapshot for the current position
         '''
+        logger.info("BrStockManager - snapshot_summary")
         if not self.summary_table.empty:
             self.summary_table.to_csv(os.path.join(self.cwd, "pd_raw_data",
                 self.now.strftime("%Y-%m-%d")+"_Summary_Snapshot.csv"), sep=';')
@@ -148,6 +161,8 @@ class BrStockManager:
         '''
         Create a summary using the date provided in the input
         '''
+        logger.info("BrStockManager - create_summary_by_date - date %s, get_last_price %s",
+            date, get_last_price)
         if not date:
             date = self.now.strftime("%Y-%m-%d")
         summary_df = pd.DataFrame()
@@ -175,10 +190,20 @@ class BrStockManager:
                     summary_df["Avg Value"])*summary_df["Quantity"]
         return summary_df
 
+    def get_stock_by_ticker(self, ticker):
+        '''
+        Returns all operations for a given stock in HTML format
+        '''
+        logger.info("BrStockManager - get_stock_by_ticker - ticker %s", ticker)
+        flt = self.dfop["Ticker"].isin([ticker])
+        stock = self.dfop[flt]
+        return stock
+
     def get_stock_by_ticker_html(self, ticker):
         '''
         Returns all operations for a given stock in HTML format
         '''
+        logger.info("BrStockManager - get_stock_by_ticker_html - ticker %s", ticker)
         flt = self.dfop["Ticker"].isin([ticker])
         stock = self.dfop[flt]
         return stock.to_html()

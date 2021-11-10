@@ -2,41 +2,16 @@
 '''
 import dash
 import dash_bootstrap_components as dbc
-import json
 import logging
-import os
-from dash import html, dcc
+from dash import html
 from dash.dependencies import Input, Output, State
 
 from lib.brstockmanager import BrStockManager
 from app import app
-from apps.dash_styles import style_center, style_white
+from apps.investing_dash_components import style_center, style_white, get_operations_dbc
 
 ################ Logging information
 logger = logging.getLogger(__name__)
-
-##################### QUEUE
-
-################ STATIC DB QUERIES
-cwd = os.getcwd()
-PD_RAW_DATA_PATH = os.path.join(cwd, 'pd_raw_data')
-OPERATIONS_PKL = os.path.join(PD_RAW_DATA_PATH, "operations.pkl")
-OPERATIONS_CSV = os.path.join(PD_RAW_DATA_PATH, "operations.csv")
-
-################ FUNCTIONS
-def get_operations_dbc():
-    br_stock_manager = BrStockManager()
-    br_stock_manager.load_brstock_operations_pkl()
-
-    operations_table = dbc.Table.from_dataframe(
-        br_stock_manager.dfop.round(2),
-        striped=True,
-        bordered=True,
-        hover=True,
-        dark=True,
-    )
-
-    return operations_table
 
 ################ APP LAYOUT
 app_layout = html.Center(html.Div([
